@@ -1,0 +1,33 @@
+[gd_scene load_steps=5 format=3 uid="uid://b7tv1s20mknp4"]
+
+[ext_resource type="Script" path="res://Blob.cs" id="1_q3e72"]
+[ext_resource type="Texture2D" uid="uid://c46fjycknxw0r" path="res://Blob.png" id="2_i61il"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_6ko27"]
+radius = 2.5
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_uhwmf"]
+radius = 21.0
+
+[node name="Blob" type="Area2D"]
+collision_layer = 5
+script = ExtResource("1_q3e72")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_i61il")
+offset = Vector2(2.5, -2.5)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+visible = false
+position = Vector2(2.5, -2)
+shape = SubResource("CircleShape2D_6ko27")
+
+[node name="VisionRadius" type="Area2D" parent="."]
+visible = false
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VisionRadius"]
+position = Vector2(3, -2)
+shape = SubResource("CircleShape2D_uhwmf")

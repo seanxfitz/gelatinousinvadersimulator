@@ -1,0 +1,57 @@
+[gd_scene load_steps=7 format=3 uid="uid://cy56t0f4pdp5f"]
+
+[ext_resource type="Texture2D" uid="uid://bic5o817ixytl" path="res://Target.png" id="1_bybh4"]
+[ext_resource type="Script" path="res://MassTargeter.cs" id="2_8shg5"]
+[ext_resource type="FontFile" uid="uid://b5xjxdfxlthnq" path="res://NotJamChunkySans.ttf" id="3_i1aq0"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xljp4"]
+bg_color = Color(0.176471, 0.176471, 0.168627, 1)
+draw_center = false
+border_width_left = 4
+border_width_top = 4
+border_width_right = 4
+border_width_bottom = 4
+border_color = Color(0.176471, 0.176471, 0.168627, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dxb40"]
+bg_color = Color(0.176471, 0.176471, 0.168627, 1)
+border_width_left = 8
+border_width_top = 8
+border_width_right = 8
+border_width_bottom = 7
+border_color = Color(0, 0, 0, 0)
+
+[sub_resource type="LabelSettings" id="LabelSettings_eh5s4"]
+font = ExtResource("3_i1aq0")
+font_size = 6
+font_color = Color(0.176471, 0.176471, 0.168627, 1)
+
+[node name="MassTargeter" type="Sprite2D"]
+texture = ExtResource("1_bybh4")
+script = ExtResource("2_8shg5")
+
+[node name="ProgressBar" type="ProgressBar" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_top = 9.0
+offset_right = 40.0
+offset_bottom = 17.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(0.25, 0.25)
+theme_override_styles/background = SubResource("StyleBoxFlat_xljp4")
+theme_override_styles/fill = SubResource("StyleBoxFlat_dxb40")
+step = 1.0
+value = 32.0
+show_percentage = false
+
+[node name="Label" type="Label" parent="."]
+offset_left = -9.0
+offset_top = -14.0
+offset_right = 9.0
+offset_bottom = -6.0
+text = "48"
+label_settings = SubResource("LabelSettings_eh5s4")
+horizontal_alignment = 1

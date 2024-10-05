@@ -1,0 +1,32 @@
+[gd_scene load_steps=5 format=3 uid="uid://db31pa4xidx3k"]
+
+[ext_resource type="Script" path="res://Soldier.cs" id="1_ly6b0"]
+[ext_resource type="Texture2D" uid="uid://0au8wm8nitx7" path="res://Soldier.png" id="2_3ahnc"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_xo5fx"]
+radius = 3.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dr6aq"]
+radius = 16.0
+
+[node name="Soldier" type="Area2D"]
+collision_layer = 2
+collision_mask = 0
+script = ExtResource("1_ly6b0")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_3ahnc")
+offset = Vector2(0.5, 0)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0.5, 0)
+shape = SubResource("CircleShape2D_xo5fx")
+
+[node name="VisionRadius" type="Area2D" parent="."]
+position = Vector2(0.5, 0)
+collision_layer = 0
+collision_mask = 4
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VisionRadius"]
+shape = SubResource("CircleShape2D_dr6aq")

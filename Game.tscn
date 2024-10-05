@@ -1,23 +1,68 @@
-[gd_scene load_steps=4 format=3 uid="uid://dy3pju8q6abim"]
+[gd_scene load_steps=9 format=3 uid="uid://dy3pju8q6abim"]
 
+[ext_resource type="Script" path="res://GameEnvironment.cs" id="1_bnibf"]
 [ext_resource type="Script" path="res://Player.cs" id="1_cepsq"]
 [ext_resource type="Texture2D" uid="uid://c46fjycknxw0r" path="res://Blob.png" id="1_ohmj0"]
+[ext_resource type="Script" path="res://PlayerUI.cs" id="4_1js8o"]
+[ext_resource type="PackedScene" uid="uid://db31pa4xidx3k" path="res://Soldier.tscn" id="4_fg2ym"]
+[ext_resource type="FontFile" uid="uid://clv764jibbak5" path="res://Undead Pixel 8.ttf" id="5_31wem"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_rl7be"]
-radius = 2.0
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_s3xpt"]
+size = Vector2(5, 3)
+
+[sub_resource type="LabelSettings" id="LabelSettings_go27k"]
+font = ExtResource("5_31wem")
+font_size = 8
+font_color = Color(0.176471, 0.176471, 0.168627, 1)
 
 [node name="Game" type="Node2D"]
 
-[node name="Player" type="Node2D" parent="."]
+[node name="Environment" type="Node2D" parent="."]
+script = ExtResource("1_bnibf")
+
+[node name="Player" type="Area2D" parent="Environment"]
 position = Vector2(160, 90)
-scale = Vector2(4, 4)
+collision_layer = 5
 script = ExtResource("1_cepsq")
 
-[node name="Sprite2D" type="Sprite2D" parent="Player"]
+[node name="Sprite2D" type="Sprite2D" parent="Environment/Player"]
+texture = ExtResource("1_ohmj0")
+offset = Vector2(0.5, -0.5)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Environment/Player"]
+position = Vector2(0.5, 0.5)
+shape = SubResource("RectangleShape2D_s3xpt")
+
+[node name="Soldier" parent="Environment" instance=ExtResource("4_fg2ym")]
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Player UI" type="Control" parent="UI"]
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("4_1js8o")
+
+[node name="TextureRect" type="TextureRect" parent="UI/Player UI"]
+layout_mode = 0
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 9.0
+offset_bottom = 9.0
 texture = ExtResource("1_ohmj0")
 
-[node name="Area2D" type="Area2D" parent="Player"]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Player/Area2D"]
-position = Vector2(0, 0.5)
-shape = SubResource("CircleShape2D_rl7be")
+[node name="Label" type="Label" parent="UI/Player UI"]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 4.0
+offset_right = 51.0
+offset_bottom = 14.0
+text = "12
+"
+label_settings = SubResource("LabelSettings_go27k")
