@@ -1,0 +1,63 @@
+[gd_scene load_steps=10 format=3 uid="uid://bxnisrm86w1ky"]
+
+[ext_resource type="Texture2D" uid="uid://cieya8pykb3qn" path="res://BlobDeath.png" id="1_0iq26"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bs6em"]
+atlas = ExtResource("1_0iq26")
+region = Rect2(0, 0, 13, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nrsj2"]
+atlas = ExtResource("1_0iq26")
+region = Rect2(13, 0, 13, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_alwpw"]
+atlas = ExtResource("1_0iq26")
+region = Rect2(26, 0, 13, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x7wju"]
+atlas = ExtResource("1_0iq26")
+region = Rect2(39, 0, 13, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o4607"]
+atlas = ExtResource("1_0iq26")
+region = Rect2(52, 0, 13, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_h0fwg"]
+atlas = ExtResource("1_0iq26")
+region = Rect2(65, 0, 13, 12)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_svegp"]
+atlas = ExtResource("1_0iq26")
+region = Rect2(78, 0, 13, 12)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_5s4fd"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bs6em")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nrsj2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_alwpw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x7wju")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o4607")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_h0fwg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_svegp")
+}],
+"loop": false,
+"name": &"default",
+"speed": 12.0
+}]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D"]
+sprite_frames = SubResource("SpriteFrames_5s4fd")

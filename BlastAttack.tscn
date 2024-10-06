@@ -1,0 +1,64 @@
+[gd_scene load_steps=9 format=3 uid="uid://blfu4cywlevyu"]
+
+[ext_resource type="Script" path="res://BlastAttack.cs" id="1_nqti3"]
+[ext_resource type="Texture2D" uid="uid://s0yv2d2svryn" path="res://Blast.png" id="2_kt25i"]
+[ext_resource type="AudioStream" uid="uid://cbuejaimyx6tj" path="res://BlastLoop.wav" id="3_u2k58"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_d021p"]
+radius = 3.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mro4p"]
+atlas = ExtResource("2_kt25i")
+region = Rect2(0, 0, 13, 8)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gcl1s"]
+atlas = ExtResource("2_kt25i")
+region = Rect2(13, 0, 13, 8)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fhjci"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mro4p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gcl1s")
+}],
+"loop": true,
+"name": &"Idle",
+"speed": 8.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_byjmo"]
+radius = 16.0
+
+[node name="BlastAttack" type="Area2D" node_paths=PackedStringArray("animatedSprite", "DetonationArea", "streamPlayer")]
+collision_layer = 0
+collision_mask = 768
+monitorable = false
+script = ExtResource("1_nqti3")
+animatedSprite = NodePath("Sprite2D")
+DetonationArea = NodePath("Detonation")
+streamPlayer = NodePath("AudioStreamPlayer2D")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_d021p")
+
+[node name="Sprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_fhjci")
+animation = &"Idle"
+autoplay = "Idle"
+frame_progress = 0.123373
+
+[node name="Detonation" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 768
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Detonation"]
+shape = SubResource("CircleShape2D_byjmo")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_u2k58")
+volume_db = -8.782
+autoplay = true

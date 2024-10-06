@@ -1,0 +1,49 @@
+[gd_scene load_steps=7 format=3 uid="uid://fa035trrvoxn"]
+
+[ext_resource type="Script" path="res://TankShell.cs" id="1_miova"]
+[ext_resource type="Texture2D" uid="uid://cjbv2srvj8h7m" path="res://TankShell.png" id="2_x6ee1"]
+[ext_resource type="AudioStream" uid="uid://dwy4wpk2umct4" path="res://Explosion1.wav" id="3_vb6k7"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_d021p"]
+radius = 3.0
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_fhjci"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_x6ee1")
+}],
+"loop": true,
+"name": &"default",
+"speed": 0.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_byjmo"]
+radius = 12.0
+
+[node name="TankShell" type="Area2D" node_paths=PackedStringArray("animatedSprite", "DetonationArea", "streamPlayer")]
+collision_layer = 0
+collision_mask = 4
+monitorable = false
+script = ExtResource("1_miova")
+animatedSprite = NodePath("Sprite2D")
+DetonationArea = NodePath("Detonation")
+streamPlayer = NodePath("AudioStreamPlayer2D")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_d021p")
+
+[node name="Sprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_fhjci")
+
+[node name="Detonation" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 4
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Detonation"]
+shape = SubResource("CircleShape2D_byjmo")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_vb6k7")
+volume_db = -4.095

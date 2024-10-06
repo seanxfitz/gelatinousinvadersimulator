@@ -1,0 +1,141 @@
+[gd_scene load_steps=21 format=3 uid="uid://dn6ps145nk2b0"]
+
+[ext_resource type="Script" path="res://Tank.cs" id="1_8p0fv"]
+[ext_resource type="Texture2D" uid="uid://dn0kt6p70j6bs" path="res://TankIdle.png" id="2_4ssf1"]
+[ext_resource type="AudioStream" uid="uid://bxdve73m41htm" path="res://TankExplosion.wav" id="2_p6bn1"]
+[ext_resource type="Texture2D" uid="uid://dixylu2tr5jof" path="res://TankDeath.png" id="2_wqanb"]
+[ext_resource type="AudioStream" uid="uid://bg4snge53lc5h" path="res://TankShot.wav" id="3_xdbuw"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4e3jg"]
+atlas = ExtResource("2_wqanb")
+region = Rect2(0, 0, 17, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_78lpp"]
+atlas = ExtResource("2_wqanb")
+region = Rect2(17, 0, 17, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_g75is"]
+atlas = ExtResource("2_wqanb")
+region = Rect2(34, 0, 17, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vhncl"]
+atlas = ExtResource("2_wqanb")
+region = Rect2(51, 0, 17, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xpkdo"]
+atlas = ExtResource("2_wqanb")
+region = Rect2(68, 0, 17, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_36g0h"]
+atlas = ExtResource("2_wqanb")
+region = Rect2(85, 0, 17, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_88kuw"]
+atlas = ExtResource("2_wqanb")
+region = Rect2(102, 0, 17, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xg85g"]
+atlas = ExtResource("2_wqanb")
+region = Rect2(119, 0, 17, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_8puis"]
+atlas = ExtResource("2_4ssf1")
+region = Rect2(0, 0, 18, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xmyer"]
+atlas = ExtResource("2_4ssf1")
+region = Rect2(18, 0, 18, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5er14"]
+atlas = ExtResource("2_4ssf1")
+region = Rect2(36, 0, 18, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7n1j6"]
+atlas = ExtResource("2_4ssf1")
+region = Rect2(54, 0, 18, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_nscwy"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4e3jg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_78lpp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_g75is")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vhncl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xpkdo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_36g0h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_88kuw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xg85g")
+}],
+"loop": false,
+"name": &"Death",
+"speed": 12.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_8puis")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xmyer")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5er14")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7n1j6")
+}],
+"loop": true,
+"name": &"Idle",
+"speed": 4.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ds8ku"]
+radius = 4.0
+height = 16.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dr6aq"]
+radius = 48.0
+
+[node name="Tank" type="Area2D" node_paths=PackedStringArray("audioPlayer")]
+collision_layer = 258
+collision_mask = 0
+script = ExtResource("1_8p0fv")
+explosion = ExtResource("2_p6bn1")
+shot = ExtResource("3_xdbuw")
+audioPlayer = NodePath("AudioStreamPlayer2D")
+
+[node name="Sprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_nscwy")
+animation = &"Idle"
+autoplay = "Idle"
+offset = Vector2(2, -4)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_ds8ku")
+
+[node name="VisionRadius" type="Area2D" parent="."]
+position = Vector2(0.5, 0)
+collision_layer = 0
+collision_mask = 4
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VisionRadius"]
+position = Vector2(0.5, 0)
+shape = SubResource("CircleShape2D_dr6aq")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]

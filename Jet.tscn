@@ -1,0 +1,66 @@
+[gd_scene load_steps=10 format=3 uid="uid://c0cmsgdl6xoiv"]
+
+[ext_resource type="Script" path="res://Jet.cs" id="1_exbra"]
+[ext_resource type="Texture2D" uid="uid://chpeyfk3yvy4j" path="res://JetIdle.png" id="2_mad04"]
+[ext_resource type="AudioStream" uid="uid://bfdae6linku0w" path="res://Plane.wav" id="2_ql6be"]
+[ext_resource type="AudioStream" uid="uid://c5tl7nrth0mqv" path="res://PlaneExplosion.wav" id="3_sondj"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4frda"]
+atlas = ExtResource("2_mad04")
+region = Rect2(0, 0, 16, 16)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mgh4b"]
+atlas = ExtResource("2_mad04")
+region = Rect2(16, 0, 16, 16)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_jmjel"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4frda")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_mgh4b")
+}],
+"loop": true,
+"name": &"Idle",
+"speed": 5.0
+}]
+
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ds8ku"]
+radius = 6.0
+height = 20.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_dr6aq"]
+radius = 48.0
+
+[node name="Jet" type="Area2D" node_paths=PackedStringArray("animatedSprite", "audioPlayer")]
+collision_layer = 512
+collision_mask = 0
+script = ExtResource("1_exbra")
+animatedSprite = NodePath("Sprite2D")
+takeOff = ExtResource("2_ql6be")
+explosion = ExtResource("3_sondj")
+audioPlayer = NodePath("AudioStreamPlayer2D")
+
+[node name="Sprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_jmjel")
+animation = &"Idle"
+autoplay = "Idle"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+rotation = 1.5708
+shape = SubResource("CapsuleShape2D_ds8ku")
+
+[node name="VisionRadius" type="Area2D" parent="."]
+position = Vector2(0.5, 0)
+collision_layer = 0
+collision_mask = 4
+monitorable = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VisionRadius"]
+position = Vector2(0.5, 0)
+shape = SubResource("CircleShape2D_dr6aq")
+
+[node name="AudioStreamPlayer2D" type="AudioStreamPlayer2D" parent="."]
+volume_db = -8.619

@@ -3,129 +3,222 @@ using Godot;
 using System;
 using System.Linq;
 using System.Threading;
-using System.Timers;
 
-public partial class Blob : Area2D
+interface PlayerDamageable
+{
+    void TakeDamage(int amount);
+}
+
+public partial class Blob : Area2D, PlayerDamageable
 {
     public enum State
     {
         waiting, launching, returning, attacking, dissolving
     }
 
-    public State CurrentState { get; private set;} = State.waiting;
+    public State CurrentState { get; private set; } = State.waiting;
 
     Vector2 LaunchTarget = Vector2.Zero;
     int moveSpeedMS;
-    int attackSpeedMS = 80;
+    int attackSpeedMS = 60;
 
-    CancellationTokenSource tokenSource;
+    int health = 2;
+    int size = 1;
+    public int Size
+    {
+        get { return size; }
+        private set
+        {
+            size = value;
+            ScaleForSize();
+        }
+    }
+
+    CancellationTokenSource launchTokenSource;
+    CancellationTokenSource returnTokenSource;
+    CancellationTokenSource attackTokenSource;
+    CancellationTokenSource absorbTokenSource;
 
     Area2D VisionRadius;
 
-    float attackRange = 1;
+    bool hasAbsorbedTarget = false;
+
+    float attackRange = 2;
     [Export] int dissolveStrength = 1;
     int dissolveTickMS = 1000;
 
-    Soldier attackTarget;
-
+    Absorbable attackTarget;
+    AnimatedSprite2D animatedSprite;
+    [Export] AudioStreamPlayer2D streamPlayer;
+    bool dying = false;
     public override void _EnterTree()
     {
         base._EnterTree();
         VisionRadius = GetNode<Area2D>("VisionRadius");
         VisionRadius.AreaEntered += HandleAreaEnteredVision;
-    }
-
-    public override void _Process(double delta)
-    {
-        base._Process(delta);
-
-        switch (CurrentState)
-        {
-            case State.waiting:
-                if (VisionRadius.HasOverlappingAreas())
-                {
-                    var bodies = VisionRadius.GetOverlappingAreas().Where(body => body is Soldier soldier && soldier.CanAttachBlob());
-
-                    if (bodies.Count() == 0)
-                    {
-                        ReturnToPlayer().Forget();
-                        return;
-                    }
-
-                    GD.Print($"blob has bodies in vision and can attach {bodies.Count() > 0}");
-                    var target = RNG.Combat.RandomPick(bodies) as Soldier;
-                    AttackTarget(target).Forget();
-                }
-                else
-                {
-                    ReturnToPlayer().Forget();
-                }
-                break;
-        }
-    }
-
-    public async GDTask Launch(Vector2 position, float launchDuration, int moveSpeedMS)
-    {
-        this.moveSpeedMS = moveSpeedMS;
-        CurrentState = State.launching;
-        await this.EasePosition(position, launchDuration, Easing.EaseOutSine);
-        CurrentState = State.waiting;
-    }
-
-    public async GDTask ReturnToPlayer()
-    {
-        tokenSource = new CancellationTokenSource();
-        CurrentState = State.returning;
-        var targetPos = The.Player.Position;
-        var dir = Position.DirectionTo(targetPos).Normalized();
-        while (CurrentState == State.returning && tokenSource.Token.IsCancellationRequested == false)
-        {
-            await GDTask.Delay(moveSpeedMS, PlayerLoopTiming.PhysicsProcess, tokenSource.Token);
-            dir = Position.DirectionTo(targetPos).Normalized();
-            Position += dir;
-        }
+        animatedSprite = GetNode<AnimatedSprite2D>("Sprite2D");
+        animatedSprite.Play();
+        The.Player.PlayerWillDie += HandlePlayerDeath;
     }
 
     public override void _ExitTree()
     {
         base._ExitTree();
-        tokenSource?.Cancel();
-        attackTarget?.DetachBlob(this);
+        CancelAllActions();
+        if (IsInstanceValid(attackTarget))
+        {
+            attackTarget.DetachBlob(this);
+        }
+        The.Player.PlayerWillDie -= HandlePlayerDeath;
+    }
+
+    private void CancelAllActions()
+    {
+        returnTokenSource?.Cancel();
+        attackTokenSource?.Cancel();
+        absorbTokenSource?.Cancel();
+        launchTokenSource?.Cancel();
+    }
+
+    public void HandlePlayerDeath()
+    {
+        Die();
     }
 
     private void HandleAreaEnteredVision(Area2D other)
     {
-        if (other is Soldier soldier && CurrentState != State.attacking && CurrentState != State.dissolving && CurrentState != State.launching)
+        if (other is Absorbable absorbable && 
+            CurrentState != State.attacking && 
+            CurrentState != State.dissolving && 
+            CurrentState != State.launching && 
+            hasAbsorbedTarget == false && 
+            absorbable.IsPlayerVisible())
         {
-            AttackTarget(soldier).Forget();
+            AttackTarget(absorbable).Forget();
         }
     }
 
-    private async GDTask AttackTarget(Soldier other)
+    public void TakeDamage(int amount)
     {
-        CurrentState = State.attacking;
-        attackTarget = other;
-        attackTarget.WillDie += HandleTargetDeath;
-        while(CurrentState == State.attacking)
+        health -= amount;
+        if (health <= 0 && !dying)
         {
-            if (attackTarget == null || IsInstanceValid(attackTarget) == false)
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        if(dying) { return; }
+
+        dying = true;
+        SetDeferred("Monitorable", false);
+        SetDeferred("Monitoring", false);
+        VisionRadius.Monitoring = false;
+
+        returnTokenSource?.Cancel();
+        attackTokenSource?.Cancel();
+        absorbTokenSource?.Cancel();
+        launchTokenSource?.Cancel();
+
+        streamPlayer.Play();
+        animatedSprite.Play("Death");
+        animatedSprite.AnimationFinished += () =>
+        {
+            QueueFree();
+        };
+    }
+
+    private void ResolveNextState()
+    {
+        if (dying == false && hasAbsorbedTarget == false && VisionRadius.HasOverlappingAreas())
+        {
+            var bodies = VisionRadius.GetOverlappingAreas().Where(area => IsInstanceValid(area) && area is Absorbable absorbable && absorbable.CanAttachBlob() && absorbable.IsPlayerVisible());
+
+            if (bodies.Any() == false)
             {
-                CurrentState = State.waiting;
+                ReturnToPlayer().Forget();
                 return;
             }
 
-            if (attackTarget.Position.DistanceSquaredTo(Position) > attackRange * attackRange)
+            var target = RNG.Combat.RandomPick(bodies) as Absorbable;
+            AttackTarget(target).Forget();
+        }
+        else
+        {
+            ReturnToPlayer().Forget();
+        }
+    }
+
+    private void ScaleForSize()
+    {
+        switch(size)
+        {
+            case < 4:
+                Scale = Vector2.One;
+                break;
+            case < 8:
+                Scale = new Vector2(2, 2);
+                break;
+            case > 8:
+                Scale = new Vector2(3,3);
+                break;
+        }
+    }
+
+#region StateTasks
+
+    public async GDTask Launch(Vector2 position, float launchDuration, int moveSpeedMS)
+    {
+        launchTokenSource = new CancellationTokenSource();
+        this.moveSpeedMS = moveSpeedMS;
+        CurrentState = State.launching;
+        await this.EasePosition(position, launchDuration, Easing.EaseOutSine, launchTokenSource.Token);
+        ResolveNextState();
+    }
+
+    public async GDTask ReturnToPlayer()
+    {
+        returnTokenSource = new CancellationTokenSource();
+        CurrentState = State.returning;
+        var targetPos = The.Player.Position;
+        var dir = Position.DirectionTo(targetPos).Normalized();
+        while (CurrentState == State.returning && returnTokenSource.Token.IsCancellationRequested == false)
+        {
+            await GDTask.Delay(moveSpeedMS, PlayerLoopTiming.Process, returnTokenSource.Token);
+            dir = Position.DirectionTo(targetPos).Normalized();
+            Position += dir;
+        }
+    }
+
+    private async GDTask AttackTarget(Absorbable other)
+    {
+        CurrentState = State.attacking;
+        attackTarget = other;
+
+        attackTokenSource = new CancellationTokenSource();
+        while (CurrentState == State.attacking && attackTokenSource.IsCancellationRequested == false)
+        {
+            if (attackTarget == null || IsInstanceValid(attackTarget) == false)
             {
-                Position += Position.DirectionTo(attackTarget.Position).Normalized();
-                await GDTask.Delay(attackSpeedMS, PlayerLoopTiming.PhysicsProcess);
+                ResolveNextState();
+                break;
+            }
+
+            if (attackTarget.NextBlobPosition().DistanceSquaredTo(Position) > 2)
+            {
+                Position += Position.DirectionTo(attackTarget.NextBlobPosition()).Normalized();
+                await GDTask.Delay(attackSpeedMS, PlayerLoopTiming.Process, attackTokenSource.Token);
             }
             else if (attackTarget.CanAttachBlob())
             {
-                DissolveTarget(attackTarget).Forget();
-            } 
+                AbsorbTarget(attackTarget).Forget();
+                break;
+            }
             else
             {
-                CurrentState = State.waiting;
+                ResolveNextState();
+                break;
             }
         }
     }
@@ -137,19 +230,39 @@ public partial class Blob : Area2D
             attackTarget.WillDie -= HandleTargetDeath;
             attackTarget = null;
         }
-        CurrentState = State.waiting;
+        if (dying) return;
+        Die();
     }
 
-    private async GDTask DissolveTarget(Soldier other)
+    private async GDTask AbsorbTarget(Absorbable other)
     {
+        attackTokenSource.Cancel();
+
+        absorbTokenSource = new CancellationTokenSource();
+
+        attackTarget.WillDie += HandleTargetDeath;
+
         CurrentState = State.dissolving;
-        attackTarget.AttachBlob(this);
-        while(IsInstanceValid(other) && other.health > 0)
+        Position = attackTarget.AttachBlob(this);
+        animatedSprite.Play("Absorbing");
+        while (IsInstanceValid(other) && other.health > 0 && absorbTokenSource.IsCancellationRequested == false)
         {
-            await GDTask.Delay(dissolveTickMS);
-            Position = other.Position;
-            other.TickDissolve(dissolveStrength);
+            await GDTask.Delay(dissolveTickMS, PlayerLoopTiming.Process, absorbTokenSource.Token);
+            if (other.TickAbsorb(dissolveStrength))
+            {
+                other.WillDie -= HandleTargetDeath;
+                Size += other.Size;
+                health += other.Size;
+                hasAbsorbedTarget = true;
+                animatedSprite.Play("AbsorbedIdle");
+                ResolveNextState();
+                return;
+            }
         }
-        CurrentState = State.waiting;
+        
+        animatedSprite.Play("Idle");
+        ResolveNextState();
     }
+
+    #endregion
 }

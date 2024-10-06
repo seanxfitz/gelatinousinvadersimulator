@@ -11,7 +11,7 @@ public partial class MassTargeter : Sprite2D
     [Export] int max;
     [Export] int chargeSpeedMS;
 
-    [Signal] public delegate void OnChargeReleasedEventHandler(int amount, Vector2 target);
+    [Signal] public delegate void OnChargeReleasedEventHandler(int amount, Vector2 target, MassTargeter targeter);
 
     public override void _EnterTree()
     {
@@ -51,7 +51,7 @@ public partial class MassTargeter : Sprite2D
 
         }
 
-        EmitSignal(SignalName.OnChargeReleased, current, Position);
+        EmitSignal(SignalName.OnChargeReleased, current, Position, this);
         QueueFree();
     }
 }

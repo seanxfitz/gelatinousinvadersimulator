@@ -1,47 +1,54 @@
-[gd_scene load_steps=9 format=3 uid="uid://dy3pju8q6abim"]
+[gd_scene load_steps=16 format=3 uid="uid://dy3pju8q6abim"]
 
-[ext_resource type="Script" path="res://GameEnvironment.cs" id="1_bnibf"]
-[ext_resource type="Script" path="res://Player.cs" id="1_cepsq"]
+[ext_resource type="Script" path="res://Game.cs" id="1_ne424"]
 [ext_resource type="Texture2D" uid="uid://c46fjycknxw0r" path="res://Blob.png" id="1_ohmj0"]
+[ext_resource type="PackedScene" uid="uid://bqg2y41jnnw8n" path="res://GameEnvironment.tscn" id="2_hhxor"]
 [ext_resource type="Script" path="res://PlayerUI.cs" id="4_1js8o"]
-[ext_resource type="PackedScene" uid="uid://db31pa4xidx3k" path="res://Soldier.tscn" id="4_fg2ym"]
+[ext_resource type="Script" path="res://Ui.cs" id="5_8lsrh"]
 [ext_resource type="FontFile" uid="uid://clv764jibbak5" path="res://Undead Pixel 8.ttf" id="5_31wem"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_s3xpt"]
-size = Vector2(5, 3)
 
 [sub_resource type="LabelSettings" id="LabelSettings_go27k"]
 font = ExtResource("5_31wem")
 font_size = 8
 font_color = Color(0.176471, 0.176471, 0.168627, 1)
 
+[sub_resource type="LabelSettings" id="LabelSettings_ktbl3"]
+font = ExtResource("5_31wem")
+font_color = Color(0.176471, 0.176471, 0.168627, 1)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_dvlve"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_fsvan"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_yoh6u"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bojh4"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_f7x5c"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_kvvuq"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_6m7an"]
+
 [node name="Game" type="Node2D"]
+script = ExtResource("1_ne424")
 
-[node name="Environment" type="Node2D" parent="."]
-script = ExtResource("1_bnibf")
+[node name="Environment" parent="." instance=ExtResource("2_hhxor")]
 
-[node name="Player" type="Area2D" parent="Environment"]
-position = Vector2(160, 90)
-collision_layer = 5
-script = ExtResource("1_cepsq")
-
-[node name="Sprite2D" type="Sprite2D" parent="Environment/Player"]
-texture = ExtResource("1_ohmj0")
-offset = Vector2(0.5, -0.5)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="Environment/Player"]
-position = Vector2(0.5, 0.5)
-shape = SubResource("RectangleShape2D_s3xpt")
-
-[node name="Soldier" parent="Environment" instance=ExtResource("4_fg2ym")]
-
-[node name="UI" type="Control" parent="."]
+[node name="UI" type="Control" parent="." node_paths=PackedStringArray("TitleLabel", "Button", "PlayerUI")]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 340.0
+offset_bottom = 180.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("5_8lsrh")
+TitleLabel = NodePath("Title")
+Button = NodePath("Button")
+PlayerUI = NodePath("Player UI")
 
 [node name="Player UI" type="Control" parent="UI"]
 anchors_preset = 0
@@ -66,3 +73,33 @@ offset_bottom = 14.0
 text = "12
 "
 label_settings = SubResource("LabelSettings_go27k")
+
+[node name="Title" type="Label" parent="UI"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 24.0
+offset_right = 304.0
+offset_bottom = 78.0
+text = "GELATINOUS INVADER SIMULATOR"
+label_settings = SubResource("LabelSettings_ktbl3")
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="Button" type="Button" parent="UI"]
+layout_mode = 0
+offset_left = 138.0
+offset_top = 112.0
+offset_right = 182.0
+offset_bottom = 128.0
+theme_override_colors/font_color = Color(0.176471, 0.176471, 0.168627, 1)
+theme_override_fonts/font = ExtResource("5_31wem")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/focus = SubResource("StyleBoxEmpty_dvlve")
+theme_override_styles/hover_pressed = SubResource("StyleBoxEmpty_fsvan")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_yoh6u")
+theme_override_styles/pressed_mirrored = SubResource("StyleBoxEmpty_bojh4")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_f7x5c")
+theme_override_styles/normal_mirrored = SubResource("StyleBoxEmpty_kvvuq")
+theme_override_styles/normal = SubResource("StyleBoxEmpty_6m7an")
+text = "Start
+"

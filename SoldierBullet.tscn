@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://bh0asv4daq1sp"]
+
+[ext_resource type="Script" path="res://SoldierBullet.cs" id="1_mi5wv"]
+[ext_resource type="Texture2D" uid="uid://pk1jme8x6og3" path="res://SoldierBullet.png" id="2_8ym1o"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_d021p"]
+radius = 0.5
+
+[node name="SoldierBullet" type="Area2D"]
+collision_layer = 0
+collision_mask = 4
+script = ExtResource("1_mi5wv")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_d021p")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_8ym1o")

@@ -1,11 +1,12 @@
 using Fractural.Tasks;
 using Godot;
-using System;
-using System.Linq;
 using System.Threading;
+using System.Linq;
+using System.Collections.Generic;
 
-public partial class Soldier : Absorbable
+public partial class Tank : Absorbable
 {
+
     enum State
     {
         waiting, approaching, attacking, underAttack, dying
@@ -17,29 +18,36 @@ public partial class Soldier : Absorbable
     CancellationTokenSource AttackCancellationTokenSource;
 
     Vector2 approachTarget;
-    [Export] public int moveSpeedMS = 350;
+    [Export] public int moveSpeedMS = 280;
 
-    private int size = 1;
+    private int size = 8;
+    float minShellDistance = 20;
     public override int Size
     {
         get { return size; }
         protected set { size = value; }
     }
+    int attackWait = 400;
+    int attackSpeedMS = 3750;
 
-    int attackSpeedMS = 1200;
-
-    Blob attachedBlob;
+    HashSet<Blob> attachedBlobs = new HashSet<Blob>();
 
     Area2D VisionRadius;
     AnimatedSprite2D animatedSprite;
+
+    [Export] AudioStream explosion;
     [Export] AudioStream shot;
 
     public override void _EnterTree()
     {
         base._EnterTree();
+        base.health = 16;
         VisionRadius = GetNode<Area2D>("VisionRadius");
         VisionRadius.AreaEntered += HandleVisionRadiusEntered;
         animatedSprite = GetNode<AnimatedSprite2D>("Sprite2D");
+
+        MouseEntered += HandleMouseEntered;
+        MouseExited += HandleMouseExited;
     }
 
     public override void _Process(double delta)
@@ -61,18 +69,34 @@ public partial class Soldier : Absorbable
         AttackCancellationTokenSource?.Cancel();
     }
 
+    private void HandleMouseEntered()
+    {
+        The.Player.BlastTarget = this;
+    }
+
+    private void HandleMouseExited()
+    {
+        if(The.Player.BlastTarget == this)
+        {
+            The.Player.BlastTarget = null;
+        }
+    }
+
     private async GDTask ApproachPlayer()
     {
         ApproachCancellationTokenSource = new CancellationTokenSource();
         currentState = State.approaching;
         approachTarget = The.Player.Position;
         var direction = Position.DirectionTo(approachTarget);
-        Vector2 movementVector;
+        if (direction.X < 0)
+        {
+            animatedSprite.FlipH = true;
+        }
+
         while (currentState == State.approaching && ApproachCancellationTokenSource.IsCancellationRequested == false)
         {
             direction = Position.DirectionTo(approachTarget);
-            movementVector = direction.Normalized();
-            Position += movementVector;
+            Position += direction.Normalized();
             await GDTask.Delay(moveSpeedMS, PlayerLoopTiming.Process, ApproachCancellationTokenSource.Token);
         }
     }
@@ -90,13 +114,16 @@ public partial class Soldier : Absorbable
         currentState = State.attacking;
         AttackCancellationTokenSource = new CancellationTokenSource();
 
-        await GDTask.Delay(attackSpeedMS, PlayerLoopTiming.Process, AttackCancellationTokenSource.Token);
+        await GDTask.Delay(attackWait, PlayerLoopTiming.Process, AttackCancellationTokenSource.Token);
 
-        if (AttackCancellationTokenSource.Token.IsCancellationRequested) {  return; }
+        if (AttackCancellationTokenSource.Token.IsCancellationRequested) { return; }
         if (currentState == State.underAttack) { return; }
 
-        var targets = VisionRadius.GetOverlappingAreas().Where(area => IsInstanceValid(area) && (area is PlayerDamageable));
-        if (targets.Count() == 0)
+        var targets = VisionRadius.GetOverlappingAreas().Where(area => 
+                                                                IsInstanceValid(area) &&
+                                                                area is PlayerDamageable &&
+                                                                Position.DistanceSquaredTo(area.Position) > Mathf.Pow(minShellDistance, 2));
+        if (targets.Any() == false)
         {
             currentState = State.waiting;
             return;
@@ -105,12 +132,13 @@ public partial class Soldier : Absorbable
         var target = RNG.Combat.RandomPick(targets);
 
         var shotDirection = Position.DirectionTo(target.Position).Normalized();
-        var bullet = Scenes.SoldierBullet;
-        The.Environment.AddChild(bullet);
-        bullet.Position = this.Position + shotDirection;
-        bullet.Initialize(shotDirection);
+        var shell = Scenes.TankShell;
+        The.Environment.AddChild(shell);
+        shell.Position = this.Position + (shotDirection * 8);
+        shell.Initialize(shotDirection);
         audioPlayer.Stream = shot;
         audioPlayer.Play();
+        attackWait = attackSpeedMS;
         TryAttackTarget().Forget();
     }
 
@@ -118,29 +146,47 @@ public partial class Soldier : Absorbable
 
     public override Vector2 AttachBlob(Blob blob)
     {
-        attachedBlob = blob;
         currentState = State.underAttack;
-        return Position;
+        attachedBlobs.Add(blob);
+
+        switch (attachedBlobs.Count) {
+            case 1:
+                return Position + new Vector2(-4, 4);
+            case 2:
+                return Position + new Vector2(4, 4);
+            case 3:
+                return Position + new Vector2(-4, -1);
+            default:
+                return Position + new Vector2(4, 1);
+        }
     }
 
     public override Vector2 NextBlobPosition()
     {
-        return Position;
+        switch (attachedBlobs.Count)
+        {
+            case 0:
+                return Position + new Vector2(-4, 4);
+            case 1:
+                return Position + new Vector2(4, 4);
+            case 2:
+                return Position + new Vector2(-4, -1);
+            default:
+                return Position + new Vector2(4, 1);
+        }
     }
 
     public override void DetachBlob(Blob blob)
     {
-        if(attachedBlob == blob)
+        if (attachedBlobs.Remove(blob))
         {
-            attachedBlob = null;
-
             currentState = State.waiting;
         }
     }
 
     public override bool CanAttachBlob()
     {
-        return attachedBlob == null;
+        return attachedBlobs.Count < 4;
     }
 
     public override bool TickAbsorb(int rate)
@@ -157,15 +203,26 @@ public partial class Soldier : Absorbable
 
     #endregion
 
+    bool dying = false;
     private void Die()
     {
+        if (dying)
+        {
+            return;
+        }
+        audioPlayer.Stream = explosion;
+        audioPlayer.VolumeDb = -4;
+        audioPlayer.Play();
+        dying = true;
         VisionRadius.Monitoring = false;
-        SetDeferred(PropertyName.Monitorable, false);
+        SetDeferred("Monitorable", false);
+
+        EmitSignal(SignalName.WillDie);
 
         animatedSprite.Play("Death");
+        AddChild(Scenes.Explosion);
         animatedSprite.AnimationFinished += () =>
         {
-            EmitSignal(SignalName.WillDie);
             QueueFree();
         };
     }

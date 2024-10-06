@@ -11,14 +11,7 @@ public partial class PlayerUI : Control
         sizeLabel = GetNode<Label>("Label");
     }
 
-    public override void _Ready()
-    {
-        base._Ready();
-        sizeLabel.Text = The.Player.Size.ToString();
-        The.Player.OnSizeChanged += HandlePlayerSizeChange;
-    }
-
-    private void HandlePlayerSizeChange(int newSize)
+    public void HandlePlayerSizeChange(int newSize)
     {
         sizeLabel.Text = newSize.ToString();
     }

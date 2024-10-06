@@ -1,12 +1,16 @@
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 public partial class GameEnvironment : Node2D
 {
 
     [Export] double spawnInterval = 5;
-    double timer = 0;
+    double timer = 4;
+
+    double jetChance = 0.15;
+    double tankChance = 0.2;
     public override void _EnterTree()
     {
         base._EnterTree();
@@ -16,17 +20,54 @@ public partial class GameEnvironment : Node2D
     public override void _Process(double delta)
     {
         base._Process(delta);
+
+        if (The.Game.Started == false) return;
+
         timer += delta;
-        if(timer > spawnInterval)
+        if (timer > spawnInterval)
         {
-            // spawn
             timer = 0;
-            SpawnSoldierGroup();
+            spawnInterval = Mathf.Max(spawnInterval - 0.0125, 1.5);
+
+            if (RNG.Generation.PassWithChance(tankChance))
+            {
+                var spawnPositon = GenerateSpawnPosition();
+                var tank = Scenes.Tank;
+                AddChild(tank);
+                tank.Position = spawnPositon;
+            } 
+            else if(RNG.Generation.PassWithChance(jetChance))
+            {
+                var spawnPositionX = RNG.Generation.PassWithChance(0.5) ? -16 : 336;
+                var spawnPositionY = RNG.Generation.GetInRange(12, The.Player.Position.Y - (The.Player.Scale.Y * 6) - 16);
+                var jet = Scenes.Jet;
+                AddChild(jet);
+                jet.Initialize(new Vector2(spawnPositionX, spawnPositionY));
+            }
+            else
+            {
+                SpawnSoldierGroup(GenerateSpawnPosition());
+            }
         }
     }
 
+    private void SpawnSoldierGroup(Vector2 spawnPosition)
+    {
+        var rows = RNG.Generation.GetInRange(2, 4);
+        var cols = RNG.Generation.GetInRange(1, 4);
 
-    private void SpawnSoldierGroup()
+        for(int posX = 0; posX < rows; posX++)
+        {
+            for(int posY = 0; posY < cols; posY++)
+            {
+                var soldier = Scenes.Soldier;
+                AddChild(soldier);
+                soldier.Position = spawnPosition + new Vector2(posX * 8, posY * 8);
+            }
+        }
+    }
+
+    private Vector2 GenerateSpawnPosition()
     {
         int x, y;
 
@@ -35,7 +76,7 @@ public partial class GameEnvironment : Node2D
             // spawn top or bottom
             y = RNG.Generation.PassWithChance(0.5) ? -12 : 192;
             x = RNG.Generation.GetInRange(20, 300);
-        } 
+        }
         else
         {
             // spawn left or right
@@ -43,18 +84,6 @@ public partial class GameEnvironment : Node2D
             x = RNG.Generation.PassWithChance(0.5) ? -12 : 332;
         }
 
-        var spawnPosition = new Vector2(x, y);
-
-        var amount = RNG.Generation.GetInRange(3, 7);
-
-        for(int posX = 0; posX < amount / 2; posX++)
-        {
-            for(int posY = 0; posY < amount / 2; posY++)
-            {
-                var soldier = Scenes.Soldier;
-                AddChild(soldier);
-                soldier.Position = spawnPosition + new Vector2(posX * 8, posY * 8);
-            }
-        }
+        return new Vector2(x, y);
     }
 }
