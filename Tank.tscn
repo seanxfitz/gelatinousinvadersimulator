@@ -104,8 +104,8 @@ animations = [{
 }]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_ds8ku"]
-radius = 4.0
-height = 16.0
+radius = 6.0
+height = 18.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_dr6aq"]
 radius = 48.0
@@ -125,6 +125,7 @@ autoplay = "Idle"
 offset = Vector2(2, -4)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(1, 0)
 rotation = 1.5708
 shape = SubResource("CapsuleShape2D_ds8ku")
 

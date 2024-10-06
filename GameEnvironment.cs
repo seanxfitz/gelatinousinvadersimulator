@@ -9,7 +9,7 @@ public partial class GameEnvironment : Node2D
     [Export] double spawnInterval = 5;
     double timer = 4;
 
-    double jetChance = 0.15;
+    double jetChance = 0.0;
     double tankChance = 0.2;
     public override void _EnterTree()
     {
@@ -46,6 +46,7 @@ public partial class GameEnvironment : Node2D
             }
             else
             {
+                jetChance = Mathf.Min(jetChance + 0.01, 0.15);
                 SpawnSoldierGroup(GenerateSpawnPosition());
             }
         }
