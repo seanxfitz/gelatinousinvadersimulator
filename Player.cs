@@ -81,7 +81,7 @@ public partial class Player : Area2D, PlayerDamageable
             targeting.Initialize(availableSize - 1, chargeSpeedMS);
             targeting.OnChargeReleased += HandleChargeAttackRelease;
         } 
-        else if (BlastAttackIsValid() && Input.IsActionJustReleased("RightClick"))
+        else if (Input.IsActionJustPressed("RightClick") && BlastAttackIsValid())
         {
             LaunchBlastAttack();
         }
@@ -94,7 +94,7 @@ public partial class Player : Area2D, PlayerDamageable
 
     private bool BlastAttackIsValid()
     {
-        return chargingAttack == false && availableSize > blastCost;
+        return chargingAttack == false && availableSize > blastCost && BlastTarget != null;
     }
 
     private float MinimumChargeAttackDistance()
