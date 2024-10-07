@@ -6,3 +6,6 @@ Fonts by https://not-jam.itch.io/
 Palette inspired by https://lospec.com/palette-list/red-poster
 
 GDTask by https://github.com/Fractural/GDTask
+
+
+Enjoy peak project structure
